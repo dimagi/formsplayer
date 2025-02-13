@@ -10,6 +10,7 @@ import org.commcare.formplayer.services.VirtualDataInstanceService;
 import org.commcare.formplayer.session.FormSession;
 import org.commcare.session.CommCareSession;
 import org.javarosa.core.model.actions.FormSendCalloutHandler;
+import org.javarosa.core.services.locale.Localization;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
@@ -59,5 +60,14 @@ public class FormSessionFactory {
                 formDefinitionService,
                 windowWidth
         );
+    }
+
+    public FormSession getFormSessionForTest(SerializableFormSession serializableFormSession, String windowWidth, String locale) throws Exception {
+        CommCareSession commCareSession = commCareSessionFactory.getCommCareSession(serializableFormSession.getMenuSessionId());
+        if (locale != null) {
+            Localization.getGlobalLocalizerAdvanced().addAvailableLocale(locale);
+            Localization.setLocale(locale);
+        }
+        return getFormSession(serializableFormSession, commCareSession, windowWidth);
     }
 }

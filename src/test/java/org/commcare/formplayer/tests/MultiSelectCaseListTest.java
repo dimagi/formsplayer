@@ -91,12 +91,25 @@ public class MultiSelectCaseListTest extends BaseTestClass {
                 NewFormResponse.class);
         EvaluateXPathResponseBean evaluateXpathResponseBean = new EvaluateXpathRequest(mockDebuggerController,
                 formResp.getSessionId(), "instance('commcaresession')/session/context/window_width",
-                formSessionService, "test-window-width")
+                formSessionService, "test-window-width", null)
                 .request()
                 .bean();
 
         assertEquals(evaluateXpathResponseBean.getStatus(), Constants.ANSWER_RESPONSE_STATUS_POSITIVE);
         assertThat(evaluateXpathResponseBean.getOutput(), hasXpath("/result", equalTo("test-window-width")));
+    }
+
+    @Test
+    public void testLocaleParam() throws Exception {
+        NewFormResponse newFormResponse = this.sessionNavigate(new String[]{"0", "0"}, APP, "test-locale", NewFormResponse.class);
+        EvaluateXPathResponseBean xpathBean = new EvaluateXpathRequest(mockDebuggerController,
+                newFormResponse.getSessionId(), "instance('commcaresession')/session/context/applanguage",
+                formSessionService, null, "test-locale")
+                .request()
+                .bean();
+
+        assertEquals(xpathBean.getStatus(), Constants.ANSWER_RESPONSE_STATUS_POSITIVE);
+        assertThat(xpathBean.getOutput(), hasXpath("/result", equalTo("test-locale")));
     }
 
     @Test

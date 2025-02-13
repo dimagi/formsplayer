@@ -22,6 +22,7 @@ public class AuthenticatedRequestBean {
     private int timezoneOffsetMillis = -1;
     private String timezoneFromBrowser = null;
     private String windowWidth;
+    private String locale;
 
     public String getUsername() {
         return username;
@@ -110,5 +111,15 @@ public class AuthenticatedRequestBean {
     @JsonSetter(value = "windowWidth")
     public void setWindowWidth(String windowWidth) {
         this.windowWidth = windowWidth;
+    }
+
+    @JsonGetter(value = "locale")
+    public String getLocale() {
+        return locale;
+    }
+
+    @JsonSetter(value = "locale")
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 }

@@ -637,7 +637,7 @@ public class BaseTestClass {
     }
 
     EvaluateXPathResponseBean evaluateXPath(String sessionId, String xPath) throws Exception {
-        return new EvaluateXpathRequest(mockDebuggerController, sessionId, xPath, formSessionService, null)
+        return new EvaluateXpathRequest(mockDebuggerController, sessionId, xPath, formSessionService, null, null)
                 .request()
                 .bean();
     }
@@ -677,7 +677,7 @@ public class BaseTestClass {
      */
     protected void checkXpath(String sessionId, String xpath, String expectedValue)
             throws Exception {
-        new EvaluateXpathRequest(mockDebuggerController, sessionId, xpath, formSessionService, null)
+        new EvaluateXpathRequest(mockDebuggerController, sessionId, xpath, formSessionService, null, null)
                 .request()
                 .andExpectAll(
                         jsonPath("status", equalTo(Constants.ANSWER_RESPONSE_STATUS_POSITIVE)),

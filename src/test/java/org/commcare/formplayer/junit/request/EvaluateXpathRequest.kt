@@ -16,7 +16,8 @@ class EvaluateXpathRequest(
     private val sessionId: String,
     private val xpath: String,
     private val formSessionService: FormSessionService,
-    private val windowWidth: String?
+    private val windowWidth: String?,
+    private val locale: String?
 ) : MockRequest<EvaluateXPathRequestBean, EvaluateXPathResponseBean>(
     mockMvc, Constants.URL_EVALUATE_XPATH, EvaluateXPathResponseBean::class.java
 ) {
@@ -30,6 +31,7 @@ class EvaluateXpathRequest(
         bean.xpath = xpath
         bean.debugOutputLevel = Constants.BASIC_NO_TRACE
         bean.windowWidth = windowWidth
+        bean.locale = locale
 
         populateFromSession(bean)
         return requestWithBean(bean)

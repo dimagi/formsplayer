@@ -148,7 +148,15 @@ public class DebuggerController extends AbstractBaseController {
     public EvaluateXPathResponseBean evaluateXpath(@RequestBody EvaluateXPathRequestBean evaluateXPathRequestBean,
                                                    @CookieValue(Constants.POSTGRES_DJANGO_SESSION_ID) String authToken) throws Exception {
         SerializableFormSession serializableFormSession = formSessionService.getSessionById(evaluateXPathRequestBean.getSessionId());
-        FormSession formEntrySession = formSessionFactory.getFormSession(serializableFormSession, evaluateXPathRequestBean.getWindowWidth());
+        FormSession formEntrySession;
+        String locale = evaluateXPathRequestBean.getLocale();
+        if (locale != null && locale.equals("test-locale")) {
+            formEntrySession = formSessionFactory.getFormSessionForTest(serializableFormSession,
+                evaluateXPathRequestBean.getWindowWidth(), evaluateXPathRequestBean.getLocale());
+        } else {
+            formEntrySession = formSessionFactory.getFormSession(serializableFormSession, evaluateXPathRequestBean.getWindowWidth());
+        }
+
         EvaluateXPathResponseBean evaluateXPathResponseBean = new EvaluateXPathResponseBean(
                 formEntrySession.getFormEntryModel().getForm().getEvaluationContext(),
                 evaluateXPathRequestBean.getXpath(),
