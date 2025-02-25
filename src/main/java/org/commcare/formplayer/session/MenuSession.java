@@ -83,7 +83,7 @@ public class MenuSession implements HereFunctionHandlerListener {
     private PersistentMenuHelper persistentMenuHelper;
 
     private String currentBrowserLocation;
-    private String windowWidth;
+    HashMap<String, Object> metaSessionContext;
     private boolean hereFunctionEvaluated;
 
     // Stores the entity screens created to manage state for the lifecycle of this request
@@ -101,7 +101,7 @@ public class MenuSession implements HereFunctionHandlerListener {
         this.engine = engine;
         this.sandbox = restoreFactory.getSandbox();
         this.sessionWrapper = new FormplayerSessionWrapper(
-                commCareSession, engine.getPlatform(), sandbox, instanceFetcher, getWindowWidth());
+                commCareSession, engine.getPlatform(), sandbox, instanceFetcher, getMetaSessionContext());
         SessionUtils.setLocale(session.getLocale());
         sessionWrapper.syncState();
         this.isPersistentMenuEnabled = storageFactory.getPropertyManager().isPersistentMenuEnabled();
@@ -112,11 +112,12 @@ public class MenuSession implements HereFunctionHandlerListener {
     public MenuSession(String username, String domain, String appId, String locale,
             InstallService installService, RestoreFactory restoreFactory, String host,
             boolean oneQuestionPerScreen, String asUser, boolean preview,
-            FormplayerRemoteInstanceFetcher instanceFetcher, String windowWidth, FormplayerStorageFactory storageFactory)
+            FormplayerRemoteInstanceFetcher instanceFetcher, HashMap<String, Object> metaSessionContext,
+            FormplayerStorageFactory storageFactory)
             throws Exception {
         this.oneQuestionPerScreen = oneQuestionPerScreen;
         this.instanceFetcher = instanceFetcher;
-        this.windowWidth = windowWidth;
+        this.metaSessionContext = metaSessionContext;
         String resolvedInstallReference = resolveInstallReference(appId, host, domain);
         this.session = new SerializableMenuSession(
                 TableBuilder.scrubName(username),
@@ -135,7 +136,7 @@ public class MenuSession implements HereFunctionHandlerListener {
         }
         this.sandbox = restoreFactory.getSandbox();
         this.sessionWrapper = new FormplayerSessionWrapper(engine.getPlatform(), sandbox,
-                instanceFetcher, getWindowWidth());
+                instanceFetcher, getMetaSessionContext());
         SessionUtils.setLocale(locale);
         this.isPersistentMenuEnabled = storageFactory.getPropertyManager().isPersistentMenuEnabled();
         this.isAutoAdvanceMenu = storageFactory.getPropertyManager().isAutoAdvanceMenu();
@@ -144,7 +145,7 @@ public class MenuSession implements HereFunctionHandlerListener {
 
     public void resetSession() throws RemoteInstanceFetcher.RemoteInstanceException {
         this.sessionWrapper = new FormplayerSessionWrapper(engine.getPlatform(), sandbox,
-                instanceFetcher, getWindowWidth());
+                instanceFetcher, getMetaSessionContext());
         clearEntityScreenCache();
         initializeBreadcrumbs();
         selections.clear();
@@ -167,7 +168,8 @@ public class MenuSession implements HereFunctionHandlerListener {
      *                              assuming it has an autolaunch action specified.
      * @param entityScreenContext   navigation context regarding the current screen
      */
-    public boolean handleInput(@Nullable Screen screen, String input, boolean needsFullEntityScreen, boolean inputValidated,
+    public boolean handleInput(@Nullable Screen screen, String input, boolean needsFullEntityScreen,
+            boolean inputValidated,
             boolean allowAutoLaunch, EntityScreenContext entityScreenContext)
             throws CommCareSessionException {
         if (screen == null) {
@@ -190,7 +192,8 @@ public class MenuSession implements HereFunctionHandlerListener {
                     // auto-launch takes preference over auto-select
                     if (screen.shouldBeSkipped() && !autoLaunch &&
                             entityScreen.autoSelectEntities(sessionWrapper)) {
-                        return handleInput(screen, input, true, inputValidated, allowAutoLaunch, entityScreenContext);
+                        return handleInput(screen, input, true, inputValidated, allowAutoLaunch,
+                                entityScreenContext);
                     }
                     screen.handleInputAndUpdateSession(sessionWrapper, input, allowAutoLaunch, selectedValues,
                             entityScreenContext.isRespectRelevancy());
@@ -409,7 +412,7 @@ public class MenuSession implements HereFunctionHandlerListener {
                 session.getDomain(), sessionData, postUrl, session.getLocale(), session.getId(), null,
                 oneQuestionPerScreen, session.getAsUser(), session.getAppId(), null, formSendCalloutHandler,
                 storageFactory, false, null, new SessionFrame(sessionWrapper.getFrame()),
-                instanceFetcher, getWindowWidth(), sessionWrapper.getCurrentEntry().getText());
+                instanceFetcher, getMetaSessionContext(), sessionWrapper.getCurrentEntry().getText());
     }
 
     public SessionWrapper getSessionWrapper() {
@@ -501,11 +504,12 @@ public class MenuSession implements HereFunctionHandlerListener {
         return persistentMenuHelper.getPersistentMenu();
     }
 
-    public void setWindowWidth(String windowWidth) {
-        this.windowWidth = windowWidth;
+    public void setMetaSessionContext(String windowWidth, boolean keepAPMTraces) {
+        this.metaSessionContext.put("windowWidth", windowWidth);
+        this.metaSessionContext.put("keepAPMTraces", keepAPMTraces);
     }
 
-    public String getWindowWidth() {
-        return windowWidth;
+    public HashMap<String, Object> getMetaSessionContext() {
+        return metaSessionContext;
     }
 }

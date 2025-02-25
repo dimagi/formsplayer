@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 
 /**
  * Class containing logic for accepting a NewSessionRequest and services,
@@ -87,6 +88,9 @@ public class NewFormResponseFactory {
         FormplayerRemoteInstanceFetcher formplayerRemoteInstanceFetcher = new FormplayerRemoteInstanceFetcher(
                 caseSearchHelper,
                 virtualDataInstanceService);
+        HashMap<String, Object> metaSessionContext = new HashMap<String, Object>();
+        metaSessionContext.put("windowWidth", bean.getWindowWidth());
+        metaSessionContext.put("keepAPMTraces", bean.getKeepAPMTraces());
         FormSession formSession = new FormSession(
                 sandbox,
                 serializableFormDefinition,
@@ -108,7 +112,7 @@ public class NewFormResponseFactory {
                 bean.getRestoreAsCaseId(),
                 null,
                 formplayerRemoteInstanceFetcher,
-                bean.getWindowWidth(),
+                metaSessionContext,
                 null
         );
 
@@ -139,8 +143,8 @@ public class NewFormResponseFactory {
         return response;
     }
 
-    public NewFormResponse getResponse(SerializableFormSession session, CommCareSession commCareSession, String windowWidth) throws Exception {
-        FormSession formSession = getFormSession(session, commCareSession, windowWidth);
+    public NewFormResponse getResponse(SerializableFormSession session, CommCareSession commCareSession, String windowWidth, boolean keepAPMTraces) throws Exception {
+        FormSession formSession = getFormSession(session, commCareSession, windowWidth, keepAPMTraces);
         String formTreeJson = formSession.getFormTree().toString();
         return new NewFormResponse(
                 formTreeJson, formSession.getLanguages(), session.getTitle(),
@@ -150,9 +154,12 @@ public class NewFormResponseFactory {
     }
 
     public FormSession getFormSession(SerializableFormSession serializableFormSession,
-            CommCareSession commCareSession, String windowWidth) throws Exception {
+            CommCareSession commCareSession, String windowWidth, boolean keepAPMTraces) throws Exception {
         FormplayerRemoteInstanceFetcher formplayerRemoteInstanceFetcher =
                 new FormplayerRemoteInstanceFetcher(caseSearchHelper, virtualDataInstanceService);
+        HashMap<String, Object> metaSessionContext = new HashMap<String, Object>();
+        metaSessionContext.put("windowWidth", windowWidth);
+        metaSessionContext.put("keepAPMTraces", keepAPMTraces);
         return new FormSession(serializableFormSession,
                 restoreFactory,
                 formSendCalloutHandler,
@@ -160,7 +167,7 @@ public class NewFormResponseFactory {
                 commCareSession,
                 formplayerRemoteInstanceFetcher,
                 formDefinitionService,
-                windowWidth
+                metaSessionContext
         );
     }
 

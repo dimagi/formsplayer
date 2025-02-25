@@ -819,8 +819,8 @@ public class BaseTestClass {
        return sessionNavigateWithSelectedValues(selections, testName, selectedValues, null, clazz);
     }
 
-    <T> T sessionNavigateWithSelectedValues(String[] selections, String testName, String[] selectedValues,  String windowWidth,
-            Class<T> clazz)
+    <T> T sessionNavigateWithSelectedValues(String[] selections, String testName, String[] selectedValues,
+            String windowWidth, boolean keepAPMTraces, Class<T> clazz)
             throws Exception {
         SessionNavigationBean sessionNavigationBean = new SessionNavigationBean();
         sessionNavigationBean.setDomain(testName + "domain");
@@ -829,6 +829,7 @@ public class BaseTestClass {
         sessionNavigationBean.setSelections(selections);
         sessionNavigationBean.setSelectedValues(selectedValues);
         sessionNavigationBean.setWindowWidth(windowWidth);
+        sessionNavigationBean.setKeepAPMTraces(keepAPMTraces);
         return generateMockQueryWithInstallReference(Installer.getInstallReference(testName),
                 ControllerType.MENU,
                 RequestType.POST,
@@ -1031,11 +1032,14 @@ public class BaseTestClass {
         return mapper.readValue(jsonString, clazz);
     }
 
-    protected FormSession getFormSession(SerializableFormSession serializableFormSession, String windowWidth)
+    protected FormSession getFormSession(SerializableFormSession serializableFormSession, String windowWidth, boolean keepAPMTraces)
             throws Exception {
         FormplayerRemoteInstanceFetcher remoteInstanceFetcher = new FormplayerRemoteInstanceFetcher(
                 menuSessionRunnerService.getCaseSearchHelper(),
                 virtualDataInstanceService);
+        HashMap<String, Object> metaSessionContext = new HashMap<String, Object>();
+        metaSessionContext.put("windowWidth", windowWidth);
+        metaSessionContext.put("keepAPMTraces", keepAPMTraces);
         return new FormSession(serializableFormSession,
                 restoreFactoryMock,
                 formSendCalloutHandlerMock,
@@ -1043,7 +1047,7 @@ public class BaseTestClass {
                 getCommCareSession(serializableFormSession.getMenuSessionId()),
                 remoteInstanceFetcher,
                 formDefinitionService,
-                windowWidth
+                metaSessionContext
         );
     }
 

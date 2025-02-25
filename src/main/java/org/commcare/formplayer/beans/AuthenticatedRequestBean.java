@@ -22,7 +22,7 @@ public class AuthenticatedRequestBean {
     private int timezoneOffsetMillis = -1;
     private String timezoneFromBrowser = null;
     private String windowWidth;
-
+    private boolean keepAPMTraces = false;
     public String getUsername() {
         return username;
     }
@@ -110,5 +110,15 @@ public class AuthenticatedRequestBean {
     @JsonSetter(value = "windowWidth")
     public void setWindowWidth(String windowWidth) {
         this.windowWidth = windowWidth;
+    }
+
+    @JsonGetter(value = "keepAPMTraces")
+    public boolean getKeepAPMTraces() {
+        return keepAPMTraces;
+    }
+
+    @JsonSetter(value = "keepAPMTraces")
+    public void setKeepAPMTraces(boolean keepAPMTraces) {
+        this.keepAPMTraces = keepAPMTraces;
     }
 }

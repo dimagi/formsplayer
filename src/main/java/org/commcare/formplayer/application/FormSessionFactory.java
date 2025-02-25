@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+
 @Component
 public class FormSessionFactory {
 
@@ -39,17 +41,20 @@ public class FormSessionFactory {
     @Autowired
     private CommCareSessionFactory commCareSessionFactory;
 
-    public FormSession getFormSession(SerializableFormSession serializableFormSession, String windowWidth) throws Exception {
+    public FormSession getFormSession(SerializableFormSession serializableFormSession, String windowWidth, boolean keepAPMTraces) throws Exception {
         CommCareSession commCareSession = commCareSessionFactory.getCommCareSession(serializableFormSession.getMenuSessionId());
-        return getFormSession(serializableFormSession, commCareSession, windowWidth);
+        return getFormSession(serializableFormSession, commCareSession, windowWidth, keepAPMTraces);
     }
 
     @NotNull
     public FormSession getFormSession(SerializableFormSession serializableFormSession,
-            @Nullable CommCareSession commCareSession, @Nullable String windowWidth) throws Exception {
+            @Nullable CommCareSession commCareSession, @Nullable String windowWidth, @Nullable boolean keepAPMTraces) throws Exception {
         FormplayerRemoteInstanceFetcher formplayerRemoteInstanceFetcher = new FormplayerRemoteInstanceFetcher(
                 runnerService.getCaseSearchHelper(),
                 virtualDataInstanceService);
+        HashMap<String, Object> metaSessionContext = new HashMap<String, Object>();
+        metaSessionContext.put("windowWidth", windowWidth);
+        metaSessionContext.put("keepAPMTraces", keepAPMTraces);
         return new FormSession(serializableFormSession,
                 restoreFactory,
                 formSendCalloutHandler,
@@ -57,7 +62,7 @@ public class FormSessionFactory {
                 commCareSession,
                 formplayerRemoteInstanceFetcher,
                 formDefinitionService,
-                windowWidth
+                metaSessionContext
         );
     }
 }

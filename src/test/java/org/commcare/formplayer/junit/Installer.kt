@@ -63,7 +63,8 @@ class Installer(
                 bean.oneQuestionPerScreen,
                 bean.restoreAs,
                 bean.preview,
-                bean.windowWidth
+                bean.windowWidth,
+                bean.keepAPMTraces
             )
             menuSessionRunnerService.getNextMenu(null, menuSession, null, EntityScreenContext()) as CommandListResponseBean
         }

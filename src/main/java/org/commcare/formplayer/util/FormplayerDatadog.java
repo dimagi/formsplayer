@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import datadog.trace.api.DDTags;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -232,6 +235,13 @@ public class FormplayerDatadog {
         } else {
             return tagValue;
         }
+    }
+
+    public static void handleKeepDropAPMTraces(boolean keepAPMTrace) {
+        Span span = GlobalTracer.get().activeSpan();
+        String keepDropTag;
+        keepDropTag = keepAPMTrace ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP;
+        span.setTag(keepDropTag, true);
     }
 
 }

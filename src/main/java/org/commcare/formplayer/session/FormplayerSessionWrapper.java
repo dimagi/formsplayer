@@ -9,29 +9,31 @@ import org.commcare.session.CommCareSession;
 import org.commcare.session.SessionFrame;
 import org.commcare.util.CommCarePlatform;
 
+import java.util.HashMap;
+
 /**
  * Created by willpride on 1/29/16.
  */
 class FormplayerSessionWrapper extends SessionWrapper {
 
     public FormplayerSessionWrapper(CommCarePlatform platform, UserSandbox sandbox,
-                                    RemoteInstanceFetcher remoteInstanceFetcher, String windowWidth)
+                                    RemoteInstanceFetcher remoteInstanceFetcher, HashMap<String, Object> metaSessionContext)
             throws RemoteInstanceFetcher.RemoteInstanceException {
-        this(platform, sandbox, new SessionFrame(), remoteInstanceFetcher, windowWidth);
+        this(platform, sandbox, new SessionFrame(), remoteInstanceFetcher, metaSessionContext);
     }
 
     public FormplayerSessionWrapper(CommCarePlatform platform, UserSandbox sandbox, SessionFrame sessionFrame,
-                                    RemoteInstanceFetcher remoteInstanceFetcher, String windowWidth)
+                                    RemoteInstanceFetcher remoteInstanceFetcher, HashMap<String, Object> metaSessionContext)
             throws RemoteInstanceFetcher.RemoteInstanceException {
-        super(platform, sandbox, remoteInstanceFetcher, windowWidth);
+        super(platform, sandbox, remoteInstanceFetcher, metaSessionContext);
         this.frame = sessionFrame;
         prepareExternalSources();
     }
 
     public FormplayerSessionWrapper(CommCareSession session, CommCarePlatform platform, UserSandbox sandbox,
-                                    RemoteInstanceFetcher remoteInstanceFetcher, String windowWidth)
+                                    RemoteInstanceFetcher remoteInstanceFetcher, HashMap<String, Object> metaSessionContext)
             throws RemoteInstanceFetcher.RemoteInstanceException {
-        super(session, platform, sandbox, remoteInstanceFetcher, windowWidth);
+        super(session, platform, sandbox, remoteInstanceFetcher, metaSessionContext);
         prepareExternalSources();
     }
 

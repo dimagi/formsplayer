@@ -24,6 +24,7 @@ import org.commcare.formplayer.services.MediaHandler;
 import org.commcare.formplayer.services.MediaMetaDataService;
 import org.commcare.formplayer.services.RestoreFactory;
 import org.commcare.formplayer.util.Constants;
+import org.commcare.formplayer.util.FormplayerDatadog;
 import org.commcare.modern.database.TableBuilder;
 import org.commcare.session.CommCareSession;
 import org.commcare.session.SessionFrame;
@@ -59,6 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -92,7 +94,7 @@ public class FormSession {
     private boolean shouldAutoSubmit;
     private boolean suppressAutosync;
     private boolean shouldSkipFullFormValidation;
-    private String windowWidth;
+    private HashMap<String, Object> metaSessionContext;
     private Text formTitleText;
 
     public FormSession(SerializableFormSession session,
@@ -102,8 +104,7 @@ public class FormSession {
             @Nullable CommCareSession commCareSession,
             RemoteInstanceFetcher instanceFetcher,
             FormDefinitionService formDefinitionService,
-            String windowWidth) throws Exception {
-
+            HashMap<String, Object> metaSessionContext) throws Exception {
         this.session = session;
         //We don't want ongoing form sessions to change their db state underneath in the middle,
         //so suppress continuous syncs. Eventually this should likely go into the bean connector
@@ -111,7 +112,7 @@ public class FormSession {
         restoreFactory.setPermitAggressiveSyncs(false);
 
         this.sandbox = restoreFactory.getSandbox();
-        this.windowWidth = windowWidth;
+        this.metaSessionContext = metaSessionContext;
         if (commCareSession != null && commCareSession.getCurrentEntry() != null) {
             this.formTitleText = commCareSession.getCurrentEntry().getText();
         }
@@ -133,7 +134,7 @@ public class FormSession {
         if (sessionFrame == null) {
             sessionFrame = createSessionFrame(session.getSessionData());
         }
-        initialize(false, storageFactory.getStorageManager(), sessionFrame, instanceFetcher, windowWidth);
+        initialize(false, storageFactory.getStorageManager(), sessionFrame, instanceFetcher, metaSessionContext);
     }
 
     public FormSession(UserSqlSandbox sandbox,
@@ -156,7 +157,7 @@ public class FormSession {
             String caseId,
             @Nullable SessionFrame sessionFrame,
             RemoteInstanceFetcher instanceFetcher,
-            String windowWidth,
+            HashMap<String, Object> metaSessionContext,
             Text formTitleText) throws Exception {
         // use this.formDef to mutate (e.g., inject instance content, set callout handler)
         this.formDef = formDef;
@@ -170,7 +171,7 @@ public class FormSession {
 
         this.formDef.setSendCalloutHandler(formSendCalloutHandler);
         this.sandbox = sandbox;
-        this.windowWidth = windowWidth;
+        this.metaSessionContext = metaSessionContext;
         setupJavaRosaObjects();
         setupFunctionContext();
 
@@ -180,9 +181,9 @@ public class FormSession {
 
         if (instanceContent != null) {
             loadInstanceXml(this.formDef, instanceContent);
-            initialize(false, storageFactory.getStorageManager(), sessionFrame, instanceFetcher, windowWidth);
+            initialize(false, storageFactory.getStorageManager(), sessionFrame, instanceFetcher, metaSessionContext);
         } else {
-            initialize(true, storageFactory.getStorageManager(), sessionFrame, instanceFetcher, windowWidth);
+            initialize(true, storageFactory.getStorageManager(), sessionFrame, instanceFetcher, metaSessionContext);
         }
 
         if (oneQuestionPerScreen) {
@@ -279,13 +280,13 @@ public class FormSession {
 
     @Trace
     private void initialize(boolean newInstance, StorageManager storageManager,
-            SessionFrame sessionFrame, RemoteInstanceFetcher instanceFetcher, String windowWidth)
+            SessionFrame sessionFrame, RemoteInstanceFetcher instanceFetcher, HashMap<String, Object> metaSessionContext)
             throws RemoteInstanceFetcher.RemoteInstanceException {
         CommCarePlatform platform = new CommCarePlatform(CommCareConfigEngine.MAJOR_VERSION,
                 CommCareConfigEngine.MINOR_VERSION, CommCareConfigEngine.MINIMAL_VERSION,
                 storageManager);
         FormplayerSessionWrapper sessionWrapper = new FormplayerSessionWrapper(
-                platform, this.sandbox, sessionFrame, instanceFetcher, windowWidth);
+                platform, this.sandbox, sessionFrame, instanceFetcher, metaSessionContext);
 
         formDef.initialize(newInstance, sessionWrapper.getIIF(), session.getInitLang(), false);
 
@@ -472,7 +473,15 @@ public class FormSession {
     }
 
     public String getWindowWidth() {
-        return this.windowWidth;
+        return (String)metaSessionContext.get("windowWidth");
+    }
+
+    public HashMap<String, Object> getMetaSessionContext() {
+        return this.metaSessionContext;
+    }
+
+    public boolean getKeepAPMTraces() {
+        return (boolean)metaSessionContext.get("keepAPMTraces");
     }
 
     public void setIsAtLastIndex(boolean isAtLastIndex) {
